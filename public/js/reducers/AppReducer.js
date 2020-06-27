@@ -10,6 +10,7 @@ const AppReducer = function(state, action) {
                  color: {r: 255, g: 255, b: 255},
                  colorTemperature: '', brightness: '',
                  isOn: false, isColor: false,
+                 deviceType: 'PHILIPS_HUE',
                  devices: {}, daemon: 0, displayUser: false, displayURL: false,
                  displaySelectDevice: false, selectedDevice: null, error: null};
     } else {

@@ -17,6 +17,10 @@ limitations under the License.
 
 const myUtils = require('caf_iot').caf_components.myUtils;
 const colorUtil = require('./colorUtil');
+const assert = require('assert');
+
+const PHILIPS_HUE = 'PHILIPS_HUE';
+const MAGIC_LIGHT = 'MAGIC_LIGHT';
 
 const cleanupDeviceInfo = function(devices) {
     const result = {};
@@ -40,6 +44,15 @@ const patchUInt16 = function(buf, offset, val) {
     buf[offset+1] = upperBits;
 };
 
+const patchUInt8 = function(buf, offset, val) {
+    const lowerBits = val & LOWER_BITS_MASK;
+    buf[offset] = lowerBits;
+};
+
+const unique = function(arr) {
+    return Array.from(new Set(arr));
+};
+
 exports.methods = {
     async __iot_setup__() {
         // Example of how to store device state in the cloud, i.e.,
@@ -51,6 +64,8 @@ exports.methods = {
         this.scratch.devices = {};
         this.state.selectedDevice = null;
         this.state.devicesInfo = {};
+        this.state.deviceType = null;
+
         return [];
     },
 
@@ -87,17 +102,19 @@ exports.methods = {
         return [];
     },
 
-    async findDevices(config) {
+    async findDevices(deviceType, config) {
         const now = (new Date()).getTime();
         this.$.log && this.$.log.debug(now + ' findDevices() config:' +
                                        JSON.stringify(config));
-        this.state.config = config;
+        this.state.deviceType = deviceType;
+        this.state.config = config[deviceType];
 
         // forget old devices
         this.scratch.devices = {};
         this.state.devicesInfo = {};
 
-        const services = [config.serviceDiscover, config.serviceControl];
+        const services = unique([this.state.config.serviceDiscover,
+                                 this.state.config.serviceControl]);
         if (typeof window !== 'undefined') {
             // Wait for user click
             await this.$.gatt.findServicesWeb(
@@ -144,24 +161,34 @@ exports.methods = {
 
         if (this.scratch.devices[deviceId]) {
             try {
+                const charIds = unique([this.state.config.charLight,
+                                        this.state.config.charBrightness,
+                                        this.state.config.charColor]);
                 const {characteristics} =
                           await this.$.gatt.findCharacteristics(
                               this.state.config.serviceControl,
-                              this.scratch.devices[deviceId],
-                              [this.state.config.charLight,
-                               this.state.config.charBrightness,
-                               this.state.config.charColor]
+                              this.scratch.devices[deviceId], charIds
                           );
                 [this.scratch.charLight, this.scratch.charBrightness,
                  this.scratch.charColor] = characteristics;
-                const state = {};
-                const on = await this.$.gatt.dirtyRead(this.scratch.charLight);
-                state.isOn = !!on[0];
-                const brightness = await this.$.gatt.dirtyRead(
-                    this.scratch.charBrightness
-                );
-                state.brightness = brightness[0];
-                await this.$.cloud.cli.syncState(state).getPromise();
+                if (charIds.length === 1) {
+                    //magic light only uses one characteristic
+                    this.scratch.charBrightness = this.scratch.charLight;
+                    this.scratch.charColor = this.scratch.charLight;
+                }
+                if (this.state.deviceType === PHILIPS_HUE) {
+                    // Not clear how to do this for magic light
+                    const state = {};
+                    const on = await this.$.gatt.dirtyRead(
+                        this.scratch.charLight
+                    );
+                    state.isOn = !!on[0];
+                    const brightness = await this.$.gatt.dirtyRead(
+                        this.scratch.charBrightness
+                    );
+                    state.brightness = brightness[0];
+                    await this.$.cloud.cli.syncState(state).getPromise();
+                }
                 return [];
             } catch (err) {
                 return [err];
@@ -173,54 +200,139 @@ exports.methods = {
         }
     },
 
-    async switchLight(isOn) {
+    async switchLight(isOn, settings) {
         if (this.scratch.charLight) {
-            const buf = Uint8Array.from(isOn ? [0x01] : [0x00]);
             this.$.log && this.$.log.debug('switchLight ' +
                                            (isOn ? 'on' : 'off'));
-            await this.$.gatt.write(this.scratch.charLight, buf);
+            if (this.state.deviceType === PHILIPS_HUE) {
+                const buf = Uint8Array.from(isOn ? [0x01] : [0x00]);
+                await this.$.gatt.write(this.scratch.charLight, buf);
+                return [];
+            } else if (this.state.deviceType === MAGIC_LIGHT) {
+                if (isOn) {
+                    if (settings.isColor) {
+                        return this.setColor(settings.color, settings);
+                    } else {
+                        return this.setColorTemperature(
+                            settings.colorTemperature, settings
+                        );
+                    }
+                } else {
+                    const buf = Uint8Array.from([0x56, 0x00, 0x00, 0x00, 0x00,
+                                                 0x0f, 0xaa]);
+                    await this.$.gatt.write(this.scratch.charLight, buf);
+                    return [];
+                }
+            } else {
+                this.$.log && this.$.log.debug('switchLight: Ignoring unknown' +
+                                               ' device type ' +
+                                               this.state.deviceType);
+                return [];
+            }
+        } else {
+            return [];
         }
-        return [];
     },
 
-    async setBrightness(level) {
+    async setBrightness(level, settings) {
         if (this.scratch.charBrightness) {
-            // level between 1 and 254 for philips hue
-            level = colorUtil.clipBrightness(level);
-            const buf = Uint8Array.from([level & LOWER_BITS_MASK]);
             this.$.log && this.$.log.debug('setBrightness ' + level);
-            await this.$.gatt.write(this.scratch.charBrightness, buf);
+            if (this.state.deviceType === PHILIPS_HUE) {
+                // level between 1 and 254 for philips hue
+                level = colorUtil.clipBrightness(level);
+                const buf = Uint8Array.from([level & LOWER_BITS_MASK]);
+                await this.$.gatt.write(this.scratch.charBrightness, buf);
+                return [];
+            } else if (this.state.deviceType === MAGIC_LIGHT) {
+                assert(level === settings.brightness);
+                if (settings.isColor) {
+                    return this.setColor(settings.color, settings);
+                } else {
+                    return this.setColorTemperature(
+                        settings.colorTemperature, settings
+                    );
+                }
+            } else {
+                this.$.log && this.$.log.debug('setBrightness: Ignoring ' +
+                                               'unknown device type ' +
+                                               this.state.deviceType);
+                return [];
+            }
+        } else {
+            return [];
         }
-        return [];
     },
 
-    async setColorTemperature(level) {
+    async setColorTemperature(level, settings) {
         if (this.scratch.charColor) {
-            const buf = Uint8Array.from([0x01, 0x01, 0x01, 0x03, 0x02, 0xc7,
-                                         0x01, 0x05, 0x02, 0x01, 0x00]);
             // level between 150 and 500 for philips hue
             level = colorUtil.clipTemperature(level);
-            patchUInt16(buf, 5, level);
             this.$.log && this.$.log.debug('setColorTemperature ' + level);
-            await this.$.gatt.write(this.scratch.charColor, buf);
+            if (this.state.deviceType === PHILIPS_HUE) {
+                const buf = Uint8Array.from([0x01, 0x01, 0x01, 0x03, 0x02, 0xc7,
+                                             0x01, 0x05, 0x02, 0x01, 0x00]);
+                patchUInt16(buf, 5, level);
+                await this.$.gatt.write(this.scratch.charColor, buf);
+                return [];
+            } else if (this.state.deviceType === MAGIC_LIGHT) {
+                // It seems that both (W & Color) cannot be on at the same time
+                if (level < 325) {
+                    // use color (6000K)
+                    return this.setColor({r: 255, g: 255, b: 255}, settings);
+                } else {
+                    // use white (2700K)
+                    const buf = Uint8Array.from([0x56, 0x00, 0x00, 0x00, 0x00,
+                                                 0x0f, 0xaa]);
+                    const brightness = colorUtil.clipBrightnessMagic(
+                        settings.brightness
+                    );
+                    patchUInt8(buf, 4, brightness);
+                    await this.$.gatt.write(this.scratch.charColor, buf);
+                    return [];
+                }
+            } else {
+                this.$.log && this.$.log.debug('setColorTemp: Ignoring ' +
+                                               'unknown device type ' +
+                                               this.state.deviceType);
+                return [];
+            }
+        } else {
+            return [];
         }
-        return [];
     },
 
-    async setColor(color) {
+    async setColor(color, settings) {
         if (this.scratch.charColor) {
-            color = colorUtil.clipColor(color);
-            const buf = Uint8Array.from([0x01, 0x01, 0x01, 0x04, 0x04,
-                                         0x10, 0x27, 0xe2, 0x50,
-                                         0x05, 0x02, 0x01, 0x00]);
-            const [x, y] = colorUtil.rgbToXY(color.r, color.g, color.b);
-            patchUInt16(buf, 5, x);
-            patchUInt16(buf, 7, y);
             this.$.log && this.$.log.debug('setColor ' +
                                            JSON.stringify(color));
-            await this.$.gatt.write(this.scratch.charColor, buf);
+            if (this.state.deviceType === PHILIPS_HUE) {
+                color = colorUtil.clipColor(color);
+                const buf = Uint8Array.from([0x01, 0x01, 0x01, 0x04, 0x04,
+                                             0x10, 0x27, 0xe2, 0x50,
+                                             0x05, 0x02, 0x01, 0x00]);
+                const [x, y] = colorUtil.rgbToXY(color.r, color.g, color.b);
+                patchUInt16(buf, 5, x);
+                patchUInt16(buf, 7, y);
+                await this.$.gatt.write(this.scratch.charColor, buf);
+                return [];
+            } else if (this.state.deviceType === MAGIC_LIGHT) {
+                color = colorUtil.scaleColorMagic(color, settings.brightness);
+                const buf = Uint8Array.from([0x56, 0x00, 0x00, 0x00, 0x00,
+                                             0xf0, 0xaa]);
+                patchUInt8(buf, 1, color.r);
+                patchUInt8(buf, 2, color.g);
+                patchUInt8(buf, 3, color.b);
+                await this.$.gatt.write(this.scratch.charColor, buf);
+                return [];
+            } else {
+                this.$.log && this.$.log.debug('setColor: Ignoring ' +
+                                               'unknown device type ' +
+                                               this.state.deviceType);
+                return [];
+            }
+        } else {
+            return [];
         }
-        return [];
     },
 
     async disconnect() {

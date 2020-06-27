@@ -136,23 +136,55 @@ const mapPointInTriangle = function(x,y) {
     }
 };
 
-exports.rgbToXY = function (r,g,b) {
+const rgbToXY = exports.rgbToXY = function (r,g,b) {
     const gammaCorrect = (x) => (x > 0.04045) ?
-          Math.pow((x + 0.055) / (1.0 + 0.055), 2.4) :
+          Math.pow((x + 0.055) / 1.055, 2.4) :
           x / 12.92;
 
     const all = [r/255.0, g/255.0, b/255.0];
-    let [rN, gN, bN] = all.map(gammaCorrect);
+    [r, g, b] = all.map(gammaCorrect);
 
-    const X = rN * 0.649926 + gN * 0.103455 + bN * 0.197109;
-    const Y = rN * 0.234327 + gN * 0.743075 + bN * 0.022598;
-    const Z = rN * 0.0 + gN * 0.053077 + bN * 1.035763;
+    const X = r * 0.649926 + g * 0.103455 + b * 0.197109;
+    const Y = r * 0.234327 + g * 0.743075 + b * 0.022598;
+    const Z = r * 0.0 + g * 0.053077 + b * 1.035763;
 
-    const x = X/(X+Y+Z);
-    const y = Y/(X+Y+Z);
-    const [newX, newY] = mapPointInTriangle(x, y);
+    let x = X/(X+Y+Z);
+    let y = Y/(X+Y+Z);
+    [x, y] = mapPointInTriangle(x, y);
     // console.log('x:' +x + ' y:' + y + ' newX:' + newX + ' newY:' + newY);
-    return [Math.trunc(newX*65535), Math.trunc(newY*65535)];
+    return [Math.trunc(x*65535), Math.trunc(y*65535), Y];
+};
+
+const xyToRGB = exports.xyToRGB = function(x, y, brightness) {
+    x  = x / 65535.0;
+    y  = y / 65535.0;
+    [x, y] = mapPointInTriangle(x, y);
+
+    const z = 1.0 - x - y;
+
+    const Y = brightness;
+    const X = (Y / y) * x;
+    const Z = (Y / y) * z;
+
+    /* use a D50 conversion as opposed to D65
+    let r = X  * 1.4628067 - Y * 0.1840623 - Z * 0.2743606;
+    let g = -X * 0.5217933 + Y * 1.4472381 + Z * 0.0677227;
+    let b = X  * 0.0349342 - Y * 0.0968930 + Z * 1.2884099;
+    */
+    let r = X  *  1.611756 - Y * 0.202804 - Z * 0.302297;
+    let g = -X *  0.509057 + Y * 1.411913 + Z * 0.066070;
+    let b = X  *  0.026086  - Y * 0.072352 + Z * 0.962086;
+
+
+    const reverseGammaCorrect = (x) => (x <= 0.0031308) ?
+          12.92 * x :
+          1.055 * Math.pow(x, (1.0 / 2.4)) - 0.055;
+
+    const rgb = [r, g, b].map(reverseGammaCorrect);
+    [r, g, b] = rgb.map(x => Math.trunc(x*255.0) < 0 ?
+                        0 :
+                        Math.trunc(x*255.0));
+    return {r, g, b};
 };
 
 exports.clipTemperature = function(level) {
@@ -161,15 +193,45 @@ exports.clipTemperature = function(level) {
         (level > MAX_TEMP ? MAX_TEMP : level);
 };
 
-exports.clipBrightness = function(level) {
+const clipBrightness = exports.clipBrightness = function(level) {
     return level < MIN_BRIGHTNESS ?
         MIN_BRIGHTNESS :
         (level > MAX_BRIGHTNESS ? MAX_BRIGHTNESS : level);
 };
 
-exports.clipColor = function(color) {
+const clipBrightnessMagic = exports.clipBrightnessMagic = function(level) {
+    //ui clips for philips hue
+    level = level === 1 ? 0 : level;
+    level = level === 254 ? 255 : level;
+    return level & 0xFF;
+};
+
+const clipColor = exports.clipColor = function(color) {
     const clipOne = (level) => level < MIN_COLOR ?
           MIN_COLOR :
           (level > MAX_COLOR ? MAX_COLOR : level);
     return {r: clipOne(color.r), g: clipOne(color.g), b: clipOne(color.b)};
+};
+
+const clipColorMagic = exports.clipColorMagic = function(color) {
+    const clipOne = (level) => level & 0xFF;
+    return {r: clipOne(color.r), g: clipOne(color.g), b: clipOne(color.b)};
+};
+
+/*
+ No color mapping
+exports.scaleColorMagic = function(color, brightness) {
+    brightness = clipBrightnessMagic(brightness);
+    color = clipColorMagic(color);
+    const scaleOne = (level) => Math.trunc((level/255.0) * brightness);
+    return {r: scaleOne(color.r), g: scaleOne(color.g), b: scaleOne(color.b)};
+};
+*/
+
+exports.scaleColorMagic = function(color, brightness) {
+    brightness = clipBrightnessMagic(brightness);
+    color = clipColorMagic(color);
+    // using Hue calibration... TODO: calibrate magic bulb
+    const [x, y, Y] = rgbToXY(color.r, color.g, color.b);
+    return xyToRGB(x, y, Y * (brightness/255.0));
 };

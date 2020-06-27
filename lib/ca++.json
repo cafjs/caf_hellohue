@@ -47,11 +47,21 @@
                 {
                     "name": "props",
                     "env" : {
-                        "serviceDiscover": "process.env.SERVICE_DISCOVER||FE0F",
-                        "serviceControl": "process.env.SERVICE_CONTROL||932c32bd-0000-47a2-835a-a8d455b859dd",
-                        "charLight": "process.env.CHAR_LIGHT||932c32bd-0002-47a2-835a-a8d455b859dd",
-                        "charBrightness": "process.env.CHAR_BRIGHTNESS||932c32bd-0003-47a2-835a-a8d455b859dd",
-                        "charColor": "process.env.CHAR_COLOR||932c32bd-0007-47a2-835a-a8d455b859dd"
+                        "defaultDeviceType" : "process.env.DEFAULT_DEVICE_TYPE||PHILIPS_HUE",
+                        "PHILIPS_HUE": {
+                            "serviceDiscover": "process.env.PHILIPS_HUE_SERVICE_DISCOVER||FE0F",
+                            "serviceControl": "process.env.PHILIPS_HUE_SERVICE_CONTROL||932c32bd-0000-47a2-835a-a8d455b859dd",
+                            "charLight": "process.env.PHILIPS_HUE_CHAR_LIGHT||932c32bd-0002-47a2-835a-a8d455b859dd",
+                            "charBrightness": "process.env.PHILIPS_HUE_CHAR_BRIGHTNESS||932c32bd-0003-47a2-835a-a8d455b859dd",
+                            "charColor": "process.env.PHILIPS_HUE_CHAR_COLOR||932c32bd-0007-47a2-835a-a8d455b859dd"
+                        },
+                        "MAGIC_LIGHT": {
+                            "serviceDiscover": "process.env.MAGIC_LIGHT_SERVICE_DISCOVER||FFE5",
+                            "serviceControl": "process.env.MAGIC_LIGHT_SERVICE_CONTROL||FFE5",
+                            "charLight": "process.env.MAGIC_LIGHT_CHAR_LIGHT||FFE9",
+                            "charBrightness": "process.env.MAGIC_LIGHT_CHAR_BRIGHTNESS||FFE9",
+                            "charColor": "process.env.MAGIC_LIGHT_CHAR_COLOR||FFE9"
+                        }
                     }
                 }
             ]

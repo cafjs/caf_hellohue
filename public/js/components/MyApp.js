@@ -59,8 +59,9 @@ class MyApp extends React.Component {
     }
 
     render() {
-        const service = this.state.config.serviceDiscover || '?';
-        const title = `${service}  (Philips Hue)`;
+        const config = this.state.config[this.state.deviceType];
+        const service = config.serviceDiscover || '?';
+        const title = `${service}  (${this.state.deviceType})`;
 
         return cE('div', {className: 'container-fluid'},
                   cE(DisplayError, {
@@ -122,6 +123,7 @@ class MyApp extends React.Component {
                                   ctx: this.props.ctx,
                                   inIFrame: this.state.inIFrame,
                                   daemon: this.state.daemon,
+                                  deviceType: this.state.deviceType,
                                   devices: this.state.devices
                               })
                              )

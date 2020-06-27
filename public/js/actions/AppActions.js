@@ -71,7 +71,7 @@ const AppActions = {
 const EXTERNAL_METHODS = [
     'findDevices', 'connect', 'disconnect', 'reset', 'switchLight',
     'setBrightness', 'setColorTemperature', 'setColor', 'setBrowserDaemon',
-    'setError',
+    'setError', 'setDeviceType',
     'getState' // Add your methods here
 ];
 

@@ -11,6 +11,7 @@ class Finder extends React.Component {
     constructor(props) {
         super(props);
         this.handleDaemon = this.handleDaemon.bind(this);
+        this.handleDeviceType = this.handleDeviceType.bind(this);
         this.doFind = this.doFind.bind(this);
     }
 
@@ -33,6 +34,10 @@ class Finder extends React.Component {
             // Web Bluetooth API does not work in a cross-origin iframe
             !daemon && spawnDaemon();
         }
+    }
+
+    handleDeviceType(e) {
+        AppActions.setDeviceType(this.props.ctx, e);
     }
 
     doFind() {
@@ -76,6 +81,23 @@ class Finder extends React.Component {
                           )
                        )
                     ),
+                  cE(rB.FormGroup, {controlId: 'deviceTypeId'},
+                     cE(rB.Col, {sm:6, xs: 12},
+                        cE(rB.ControlLabel, null, 'Device Type')
+                       ),
+                     cE(rB.Col, {sm:6, xs: 12},
+                        cE(rB.ToggleButtonGroup, {
+                            type: 'radio',
+                            name : 'deviceType',
+                            value: this.props.deviceType,
+                            onChange: this.handleDeviceType
+                        },
+                           cE(rB.ToggleButton, {value: 'PHILIPS_HUE'}, 'Hue'),
+                           cE(rB.ToggleButton, {value: 'MAGIC_LIGHT'}, 'Magic')
+                          )
+                       )
+                    ),
+
                    cE(rB.FormGroup, {controlId: 'findControl2Id'},
                       cE(rB.Col, {sm:6, xs: 12},
                          cE(rB.ControlLabel, null, 'Start Search')
