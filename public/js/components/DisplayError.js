@@ -22,6 +22,7 @@ class DisplayError extends React.Component {
     }
 
     doDismissError(ev) {
+        AppActions.disconnect(this.props.ctx);
         AppActions.resetError(this.props.ctx);
     }
 
