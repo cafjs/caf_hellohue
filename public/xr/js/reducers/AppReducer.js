@@ -1,18 +1,13 @@
 const AppConstants = require('../constants/AppConstants');
 
-const isInIFrame = () =>  (typeof window !== 'undefined') &&
-          (window.location !== window.parent.location);
-
 const AppReducer = function(state, action) {
     if (typeof state === 'undefined') {
-        return  {isClosed: false, config: {},
-                 inIFrame: isInIFrame(),
-                 color: {r: 255, g: 255, b: 255},
-                 colorTemperature: '', brightness: '',
-                 isOn: false, isXR: false, isColor: false,
-                 deviceType: 'PHILIPS_HUE',
-                 devices: {}, daemon: 0, displayUser: false, displayURL: false,
-                 displaySelectDevice: false, selectedDevice: null, error: null};
+        return  {
+            isClosed: false,
+            color: {r: 255, g: 255, b: 255},
+            colorTemperature: 150, brightness: 0,
+            isOn: false, isColor: false,
+        };
     } else {
         switch(action.type) {
         case AppConstants.APP_UPDATE:

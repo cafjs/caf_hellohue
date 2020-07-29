@@ -1,0 +1,27 @@
+{
+    "name": "hellohueXR",
+    "version": "0.4.0",
+    "private": true,
+    "scripts": {
+        "build": "./bin/build.sh"
+    },
+    "dependencies": {
+        "caf_cli": "^0.4.0",
+        "caf_transport": "^0.4.0",
+        "react" : "^16.6.0",
+        "react-dom" : "^16.6.0",
+        "redux" : "^3.7.2",
+        "aframe": "^1.0.4",
+        "aframe-react": "^4.4.0",
+        "aframe-colorwheel-component": "^1.2.1",
+        "aframe-gui": "^0.3.8",
+        "@tweenjs/tween.js": "^17.2.0",
+        "keymirror": "^0.1.0",
+        "browserify-css": "^0.15.0",
+        "envify": "^3.4.1"
+    },
+    "devDependencies": {
+        "browserify" : "^16.0.0",
+        "uglify-es" : "^3.3.8"
+    }
+}

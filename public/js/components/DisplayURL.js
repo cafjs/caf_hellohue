@@ -13,6 +13,7 @@ class DisplayURL extends React.Component {
         this.doDismissURL = this.doDismissURL.bind(this);
         this.doCopyURL = this.doCopyURL.bind(this);
         this.doEmail = this.doEmail.bind(this);
+        this.handleIsXR = this.handleIsXR.bind(this);
         this.state = {};
         if ((typeof window !== "undefined") &&
             window.location && window.location.href) {
@@ -23,6 +24,9 @@ class DisplayURL extends React.Component {
                                             'session=user');
             delete myURL.search; // delete cacheKey
             this.state.userURL = urlParser.format(myURL);
+            myURL.pathname = '/xr/index.html';
+            myURL.hash = myURL.hash.replace('session=user', 'session=xr');
+            this.state.xrURL = urlParser.format(myURL);
         }
     }
 
@@ -31,7 +35,10 @@ class DisplayURL extends React.Component {
     }
 
     doEmail(ev) {
-        const body = encodeURIComponent(this.state.userURL);
+        const myURL = this.props.isXR ?
+              this.state.xrURL :
+              this.state.userURL;
+        const body = encodeURIComponent(myURL);
         const subject = encodeURIComponent('URL for device interaction');
         const mailtoURL = 'mailto:?subject=' + subject + '&body=' + body;
         window.open(mailtoURL);
@@ -39,8 +46,12 @@ class DisplayURL extends React.Component {
     }
 
     doCopyURL(ev) {
-        if (this.state.userURL) {
-            navigator.clipboard.writeText(this.state.userURL)
+        const myURL = this.props.isXR ?
+              this.state.xrURL :
+              this.state.userURL;
+
+        if (myURL) {
+            navigator.clipboard.writeText(myURL)
                 .then(() => {
                     console.log('Text copied OK to clipboard');
                 })
@@ -49,6 +60,10 @@ class DisplayURL extends React.Component {
                 });
         }
         this.doDismissURL();
+    }
+
+    handleIsXR(e) {
+        AppActions.setLocalState(this.props.ctx, {isXR: e});
     }
 
     render() {
@@ -62,10 +77,28 @@ class DisplayURL extends React.Component {
                     ),
                   cE(rB.ModalBody, null,
                      cE(rB.Form, {horizontal: true},
+                        cE(rB.FormGroup, {controlId: 'xrId'},
+                           cE(rB.Col, {sm:3, xs: 6},
+                              cE(rB.ControlLabel, null, 'VR/AR')
+                             ),
+                           cE(rB.Col, {sm:3, xs: 6},
+                              cE(rB.ToggleButtonGroup, {
+                                  type: 'radio',
+                                  name : 'isXR',
+                                  value: this.props.isXR,
+                                  onChange: this.handleIsXR
+                              },
+                                 cE(rB.ToggleButton, {value: false}, 'Off'),
+                                 cE(rB.ToggleButton, {value: true}, 'On')
+                                )
+                             )
+                          ),
                         cE(rB.FormGroup, {controlId: 'urlId'},
                            cE(rB.Col, {sm: 12},
                               cE(rB.FormControl.Static,
                                  {style: {wordWrap: "break-word"}},
+                                 this.props.isXR ?
+                                 this.state.xrURL :
                                  this.state.userURL)
                              )
                           )

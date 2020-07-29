@@ -19,6 +19,11 @@ browserify js/main.js | uglifyjs > js/build.min.js
 unset NODE_ENV
 popd #user
 
+#build xr view
+pushd xr
+cafjs build
+popd #xr
+
 popd #public
 
 #build iot
