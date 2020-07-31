@@ -19,10 +19,15 @@ browserify js/main.js | uglifyjs > js/build.min.js
 unset NODE_ENV
 popd #user
 
-#build xr view
-pushd xr
+#build vr view
+pushd vr
 cafjs build
-popd #xr
+popd #vr
+
+#build ar view
+pushd ar
+cafjs build
+popd #ar
 
 popd #public
 

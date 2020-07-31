@@ -6,6 +6,10 @@ const cE = React.createElement;
 const AppActions = require('../actions/AppActions');
 const urlParser = require('url');
 
+const FLAT = 0;
+const VR = 1;
+const AR = 2;
+
 class DisplayURL extends React.Component {
 
     constructor(props) {
@@ -14,7 +18,7 @@ class DisplayURL extends React.Component {
         this.doCopyURL = this.doCopyURL.bind(this);
         this.doEmail = this.doEmail.bind(this);
         this.handleIsXR = this.handleIsXR.bind(this);
-        this.state = {};
+
         if ((typeof window !== "undefined") &&
             window.location && window.location.href) {
             const myURL = urlParser.parse(window.location.href);
@@ -23,10 +27,16 @@ class DisplayURL extends React.Component {
             myURL.hash = myURL.hash.replace('session=standalone',
                                             'session=user');
             delete myURL.search; // delete cacheKey
-            this.state.userURL = urlParser.format(myURL);
-            myURL.pathname = '/xr/index.html';
-            myURL.hash = myURL.hash.replace('session=user', 'session=xr');
-            this.state.xrURL = urlParser.format(myURL);
+            this.userURL = urlParser.format(myURL);
+
+            myURL.pathname = '/vr/index.html';
+            myURL.hash = myURL.hash.replace('session=user', 'session=vr');
+            this.vrURL = urlParser.format(myURL);
+
+            myURL.pathname = '/ar/index.html';
+            myURL.hash = myURL.hash.replace('session=vr', 'session=ar');
+            this.arURL = urlParser.format(myURL);
+
         }
     }
 
@@ -35,9 +45,9 @@ class DisplayURL extends React.Component {
     }
 
     doEmail(ev) {
-        const myURL = this.props.isXR ?
-              this.state.xrURL :
-              this.state.userURL;
+        const myURL = this.props.isVR ?
+              this.vrURL :
+              (this.props.isAR ? this.arURL : this.userURL);
         const body = encodeURIComponent(myURL);
         const subject = encodeURIComponent('URL for device interaction');
         const mailtoURL = 'mailto:?subject=' + subject + '&body=' + body;
@@ -46,9 +56,9 @@ class DisplayURL extends React.Component {
     }
 
     doCopyURL(ev) {
-        const myURL = this.props.isXR ?
-              this.state.xrURL :
-              this.state.userURL;
+        const myURL = this.props.isVR ?
+              this.vrURL :
+              (this.props.isAR ? this.arURL : this.userURL);
 
         if (myURL) {
             navigator.clipboard.writeText(myURL)
@@ -63,10 +73,23 @@ class DisplayURL extends React.Component {
     }
 
     handleIsXR(e) {
-        AppActions.setLocalState(this.props.ctx, {isXR: e});
+        if (e === FLAT) {
+            AppActions.setLocalState(this.props.ctx, {isVR: false,
+                                                      isAR: false});
+        } else if (e === VR) {
+            AppActions.setLocalState(this.props.ctx, {isVR: true,
+                                                      isAR: false});
+        } else if (e === AR) {
+            AppActions.setLocalState(this.props.ctx, {isVR: false,
+                                                      isAR: true});
+        }
     }
 
     render() {
+        const type = this.props.isVR ?
+              VR :
+              (this.props.isAR ? AR : FLAT);
+
         return cE(rB.Modal, {show: !!this.props.displayURL,
                              onHide: this.doDismissURL,
                              animation: false},
@@ -78,18 +101,19 @@ class DisplayURL extends React.Component {
                   cE(rB.ModalBody, null,
                      cE(rB.Form, {horizontal: true},
                         cE(rB.FormGroup, {controlId: 'xrId'},
-                           cE(rB.Col, {sm:3, xs: 6},
-                              cE(rB.ControlLabel, null, 'VR/AR')
+                           cE(rB.Col, {sm: 4, xs: 6},
+                              cE(rB.ControlLabel, null, '2D/VR/AR')
                              ),
-                           cE(rB.Col, {sm:3, xs: 6},
+                           cE(rB.Col, {sm: 4, xs: 6},
                               cE(rB.ToggleButtonGroup, {
                                   type: 'radio',
                                   name : 'isXR',
-                                  value: this.props.isXR,
+                                  value: type,
                                   onChange: this.handleIsXR
                               },
-                                 cE(rB.ToggleButton, {value: false}, 'Off'),
-                                 cE(rB.ToggleButton, {value: true}, 'On')
+                                 cE(rB.ToggleButton, {value: FLAT}, '2D'),
+                                 cE(rB.ToggleButton, {value: VR}, 'VR'),
+                                 cE(rB.ToggleButton, {value: AR}, 'AR')
                                 )
                              )
                           ),
@@ -97,9 +121,11 @@ class DisplayURL extends React.Component {
                            cE(rB.Col, {sm: 12},
                               cE(rB.FormControl.Static,
                                  {style: {wordWrap: "break-word"}},
-                                 this.props.isXR ?
-                                 this.state.xrURL :
-                                 this.state.userURL)
+                                 this.props.isVR ?
+                                 this.vrURL :
+                                 (this.props.isAR ? this.arURL :
+                                  this.userURL)
+                                )
                              )
                           )
                        )

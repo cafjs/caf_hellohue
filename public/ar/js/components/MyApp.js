@@ -17,18 +17,11 @@ limitations under the License.
 'use strict';
 const React = require('react');
 const aframe = require('aframe');
-require('aframe-colorwheel-component/dist/aframe-colorwheel-component.js');
-require('aframe-gui/dist/aframe-gui.js');
 
 const {Entity, Scene} = require('aframe-react');
 const cE = React.createElement;
 const AppActions = require('../actions/AppActions');
 const AppStatus = require('./AppStatus');
-const Manage = require('./Manage');
-const ColorPicker = require('./ColorPicker');
-
-const DEFAULT_COLOR = 'blue';
-
 
 class MyApp extends React.Component {
 
@@ -60,11 +53,14 @@ class MyApp extends React.Component {
 
     enterVR(ev) {
         console.log('enter VR');
+        const isAR = ev.currentTarget.sceneEl.is('ar-mode');
+        AppActions.setLocalState(this.props.ctx, {isAR});
         //ev.currentTarget.removeAttribute('cursor');
     }
 
     exitVR(ev) {
         console.log('exit VR');
+        AppActions.setLocalState(this.props.ctx, {isAR: false});
         //ev.currentTarget.setAttribute('cursor', 'rayOrigin' , 'mouse');
     }
 
@@ -81,6 +77,7 @@ class MyApp extends React.Component {
         return cE(Scene, {
             cursor: 'rayOrigin: mouse',
             renderer: 'antialias: true',
+            webxr: 'optionalFeatures: dom-overlay; overlayElement: #overlay',
             events : {
                 'enter-vr': this.enterVR.bind(this),
                 'exit-vr': this.exitVR.bind(this)
@@ -88,15 +85,15 @@ class MyApp extends React.Component {
                   cE('a-assets', null,
                      cE('img', {
                          id: 'backgroundImg',
-                         src: '../xr/assets/chess-world.jpg'
+                         src: '../ar/assets/chess-world.jpg'
                      }),
                      cE('a-asset-item', {
                          id: 'lamp-obj',
-                         src: '../xr/assets/lamp.obj'
+                         src: '../ar/assets/lamp.obj'
                      }),
                      cE('a-asset-item', {
                          id: 'lamp-mtl',
-                         src: '../xr/assets/lamp.mtl'
+                         src: '../ar/assets/lamp.mtl'
                      })
                     ),
                   cE(AppStatus, {
@@ -111,7 +108,8 @@ class MyApp extends React.Component {
                   cE(Entity, {
                       primitive: 'a-sky',
                       'phi-start': 180,
-                      src: '#backgroundImg'
+                      src: '#backgroundImg',
+                      visible: !this.state.isAR
                   }),
                   cE(Entity, {
                       geometry : {primitive: 'box', width: 2.5, height: 0.2,
@@ -125,30 +123,12 @@ class MyApp extends React.Component {
                       light: {type: 'spot', intensity: intensity,
                               color: color, angle: 75, penumbra: 1.0}
                   }),
-                  cE(ColorPicker, {
-                      ctx: this.props.ctx,
-                      color: this.state.color,
-                      isColor: this.state.isColor,
-                  }),
-                  cE(Manage, {
-                      ctx: this.props.ctx,
-                      isOn: this.state.isOn,
-                      isColor: this.state.isColor,
-                      color: this.state.color,
-                      colorTemperature: this.state.colorTemperature,
-                      brightness: this.state.brightness
-                  }),
                   cE(Entity, {
                       light: 'type: ambient; intensity: 0.05'
                   }),
                   cE(Entity, {
                       light: 'type: directional; intensity: 0.15',
                       position: {x: 1.5, y: 2.0, z: 0.0}
-                  }),
-                  cE(Entity, {
-                      'laser-controls' : 'hand: right',
-                      raycaster: 'far: 10; showLine: true',
-                      line:'color: ' + DEFAULT_COLOR + '; opacity: 0.75'
                   })
                  );
     }

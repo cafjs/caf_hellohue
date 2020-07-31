@@ -1,0 +1,46 @@
+#overlay {
+    display: none;
+}
+
+#overlay:xr-overlay {
+    display: initial;
+}
+
+div.a-enter-vr {
+  visibility: hidden;
+}
+
+.panel {
+    background-color: transparent;
+}
+
+.horizontal-slider {
+    width: 100%;
+    height: 40px;
+    border: 0px;
+}
+
+.example-thumb {
+    font-size: 0.9em;
+    text-align: center;
+    background-color: black;
+    color: white;
+    cursor: pointer;
+    border: 5px solid gray;
+    box-sizing: border-box;
+}
+
+.example-thumb.active {
+    background-color: grey;
+}
+
+.example-track {
+    position: relative;
+    background: #ddd;
+    height: 10px;
+    margin-top: 10px;
+}
+
+.chrome-picker {
+    width: 100%;
+}

@@ -1,0 +1,27 @@
+{
+    "name": "hellohueAR",
+    "version": "0.4.0",
+    "private": true,
+    "scripts": {
+        "build": "./bin/build.sh"
+    },
+    "dependencies": {
+        "caf_cli": "^0.4.0",
+        "caf_transport": "^0.4.0",
+        "react" : "^16.6.0",
+        "react-dom" : "^16.6.0",
+        "react-bootstrap" : "^0.32.4",
+        "react-slider" : "^1.0.8",
+        "react-color" : "^2.18.1",
+        "redux" : "^3.7.2",
+        "aframe": "aframevr/aframe#a79aaa6",
+        "aframe-react": "^4.4.0",
+        "keymirror": "^0.1.0",
+        "browserify-css": "^0.15.0",
+        "envify": "^3.4.1"
+    },
+    "devDependencies": {
+        "browserify" : "^16.0.0",
+        "uglify-es" : "^3.3.8"
+    }
+}

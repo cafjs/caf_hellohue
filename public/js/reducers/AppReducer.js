@@ -9,7 +9,7 @@ const AppReducer = function(state, action) {
                  inIFrame: isInIFrame(),
                  color: {r: 255, g: 255, b: 255},
                  colorTemperature: '', brightness: '',
-                 isOn: false, isXR: false, isColor: false,
+                 isOn: false, isVR: false, isAR: false, isColor: false,
                  deviceType: 'PHILIPS_HUE',
                  devices: {}, daemon: 0, displayUser: false, displayURL: false,
                  displaySelectDevice: false, selectedDevice: null, error: null};

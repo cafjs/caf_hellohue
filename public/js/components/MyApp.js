@@ -81,7 +81,8 @@ class MyApp extends React.Component {
                   cE(DisplayURL, {
                       ctx: this.props.ctx,
                       selectedDevice: this.state.selectedDevice,
-                      isXR: this.state.isXR,
+                      isVR: this.state.isVR,
+                      isAR: this.state.isAR,
                       displayURL: this.state.displayURL
                   }),
                   cE(DisplaySelectDevice, {
