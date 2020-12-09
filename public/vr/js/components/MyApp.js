@@ -91,15 +91,15 @@ class MyApp extends React.Component {
                   cE('a-assets', null,
                      cE('img', {
                          id: 'backgroundImg',
-                         src: '../vr/assets/chess-world.jpg'
+                         src: '{{__CDN__}}/vr/assets/chess-world.jpg'
                      }),
                      cE('a-asset-item', {
                          id: 'lamp-obj',
-                         src: '../vr/assets/lamp.obj'
+                         src: '{{__CDN__}}/vr/assets/lamp.obj'
                      }),
                      cE('a-asset-item', {
                          id: 'lamp-mtl',
-                         src: '../vr/assets/lamp.mtl'
+                         src: '{{__CDN__}}/vr/assets/lamp.mtl'
                      })
                     ),
                   cE(AppStatus, {
