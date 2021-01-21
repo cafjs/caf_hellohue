@@ -24,6 +24,7 @@ const AppStatus = require('./AppStatus');
 const DisplayError = require('./DisplayError');
 const DisplayUser = require('./DisplayUser');
 const DisplayURL = require('./DisplayURL');
+const DisplayAR = require('./DisplayAR');
 const DisplaySelectDevice = require('./DisplaySelectDevice');
 
 const Finder = require('./Finder');
@@ -77,6 +78,11 @@ class MyApp extends React.Component {
                       isColor: this.state.isColor,
                       brightness: this.state.brightness,
                       displayUser: this.state.displayUser
+                  }),
+                  cE(DisplayAR, {
+                      ctx: this.props.ctx,
+                      inIFrame: this.state.inIFrame,
+                      displayAR: this.state.displayAR
                   }),
                   cE(DisplayURL, {
                       ctx: this.props.ctx,
@@ -137,6 +143,7 @@ class MyApp extends React.Component {
                            cE(rB.Panel.Body, null,
                               cE(Devices, {
                                   ctx: this.props.ctx,
+                                  inIFrame: this.state.inIFrame,
                                   selectedDevice: this.state.selectedDevice
                               })
                              )

@@ -11,15 +11,20 @@ class Devices extends React.Component {
         super(props);
         this.doURL = this.doURL.bind(this);
         this.doUser = this.doUser.bind(this);
+        this.doAR = this.doAR.bind(this);
         this.doDisconnect = this.doDisconnect.bind(this);
     }
 
     doURL() {
-         AppActions.setLocalState(this.props.ctx, {displayURL: true});
+        AppActions.setLocalState(this.props.ctx, {displayURL: true});
     }
 
     doUser() {
-         AppActions.setLocalState(this.props.ctx, {displayUser: true});
+        AppActions.setLocalState(this.props.ctx, {displayUser: true});
+    }
+
+    doAR() {
+        AppActions.setLocalState(this.props.ctx, {displayAR: true});
     }
 
     doDisconnect() {
@@ -29,6 +34,34 @@ class Devices extends React.Component {
     render() {
         return this.props.selectedDevice ?
             cE(rB.Form, {horizontal: true},
+               cE(rB.FormGroup, {controlId: 'buttonsId'},
+                  cE(rB.Col, {smOffset: 3, sm: 6, xs: 12},
+                     cE(rB.ButtonGroup, null, [
+                         cE(rB.Button, {
+                             key: 32,
+                             bsStyle: 'primary',
+                             onClick: this.doURL
+                         }, 'URL'),
+                         cE(rB.Button, {
+                             key: 33,
+                             bsStyle: 'info',
+                             onClick: this.doUser
+                         }, 'User View'),
+                         this.props.inIFrame ?
+                             null :
+                             cE(rB.Button, {
+                                 key: 34,
+                                 bsStyle: 'primary',
+                                 onClick: this.doAR
+                             }, 'AR View'),
+                         cE(rB.Button, {
+                             key: 35,
+                             bsStyle: 'danger',
+                             onClick: this.doDisconnect
+                         }, 'Disconnect')
+                     ].filter(x => !!x))
+                    )
+                 ),
                cE(rB.FormGroup, {controlId: 'deviceId'},
                   cE(rB.Col, {componentClass:rB.ControlLabel, sm: 3, xs: 8},
                      'Device ID'),
@@ -42,24 +75,6 @@ class Devices extends React.Component {
                      cE(rB.FormControl.Static,
                         {style: {wordWrap: "break-word"}},
                         JSON.stringify(this.props.selectedDevice.ad))
-                    )
-                 ),
-               cE(rB.FormGroup, {controlId: 'buttonsId'},
-                  cE(rB.Col, {smOffset: 3, sm: 6, xs: 12},
-                     cE(rB.ButtonGroup, null,
-                        cE(rB.Button, {
-                            bsStyle: 'primary',
-                            onClick: this.doURL
-                        }, 'URL'),
-                        cE(rB.Button, {
-                            bsStyle: 'info',
-                            onClick: this.doUser
-                        }, 'User View'),
-                        cE(rB.Button, {
-                            bsStyle: 'danger',
-                            onClick: this.doDisconnect
-                        }, 'Disconnect')
-                       )
                     )
                  )
               ) :

@@ -12,6 +12,7 @@ const AppReducer = function(state, action) {
                  isOn: false, isVR: false, isAR: false, isColor: false,
                  deviceType: 'PHILIPS_HUE',
                  devices: {}, daemon: 0, displayUser: false, displayURL: false,
+                 displayAR: false,
                  displaySelectDevice: false, selectedDevice: null, error: null};
     } else {
         switch(action.type) {
