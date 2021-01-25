@@ -53,14 +53,24 @@
                             "serviceControl": "process.env.PHILIPS_HUE_SERVICE_CONTROL||932c32bd-0000-47a2-835a-a8d455b859dd",
                             "charLight": "process.env.PHILIPS_HUE_CHAR_LIGHT||932c32bd-0002-47a2-835a-a8d455b859dd",
                             "charBrightness": "process.env.PHILIPS_HUE_CHAR_BRIGHTNESS||932c32bd-0003-47a2-835a-a8d455b859dd",
-                            "charColor": "process.env.PHILIPS_HUE_CHAR_COLOR||932c32bd-0007-47a2-835a-a8d455b859dd"
+                            "charColor": "process.env.PHILIPS_HUE_CHAR_COLOR||932c32bd-0007-47a2-835a-a8d455b859dd",
+                            "namePrefix" : "process.env.PHILIPS_HUE_NAME_PREFIX||null"
                         },
                         "MAGIC_LIGHT": {
                             "serviceDiscover": "process.env.MAGIC_LIGHT_SERVICE_DISCOVER||FFE5",
                             "serviceControl": "process.env.MAGIC_LIGHT_SERVICE_CONTROL||FFE5",
                             "charLight": "process.env.MAGIC_LIGHT_CHAR_LIGHT||FFE9",
                             "charBrightness": "process.env.MAGIC_LIGHT_CHAR_BRIGHTNESS||FFE9",
-                            "charColor": "process.env.MAGIC_LIGHT_CHAR_COLOR||FFE9"
+                            "charColor": "process.env.MAGIC_LIGHT_CHAR_COLOR||FFE9",
+                            "namePrefix" : "process.env.MAGIC_LIGHT_NAME_PREFIX||null"
+                        },
+                        "TRIONES": {
+                            "serviceDiscover": "process.env.TRIONES_SERVICE_DISCOVER||FFD5",
+                            "serviceControl": "process.env.TRIONES_SERVICE_CONTROL||FFD5",
+                            "charLight": "process.env.TRIONES_CHAR_LIGHT||FFD9",
+                            "charBrightness": "process.env.TRIONES_CHAR_BRIGHTNESS||FFD9",
+                            "charColor": "process.env.TRIONES_CHAR_COLOR||FFD9",
+                            "namePrefix": "process.env.TRIONES_NAME_PREFIX||Triones"
                         }
                     }
                 }

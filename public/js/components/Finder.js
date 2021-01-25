@@ -93,7 +93,8 @@ class Finder extends React.Component {
                             onChange: this.handleDeviceType
                         },
                            cE(rB.ToggleButton, {value: 'PHILIPS_HUE'}, 'Hue'),
-                           cE(rB.ToggleButton, {value: 'MAGIC_LIGHT'}, 'Magic')
+                           cE(rB.ToggleButton, {value: 'MAGIC_LIGHT'}, 'Magic'),
+                           cE(rB.ToggleButton, {value: 'TRIONES'}, 'Triones')
                           )
                        )
                     ),

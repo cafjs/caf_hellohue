@@ -21,6 +21,7 @@ const assert = require('assert');
 
 const PHILIPS_HUE = 'PHILIPS_HUE';
 const MAGIC_LIGHT = 'MAGIC_LIGHT';
+const TRIONES = 'TRIONES';
 
 const cleanupDeviceInfo = function(devices) {
     const result = {};
@@ -115,14 +116,16 @@ exports.methods = {
 
         const services = unique([this.state.config.serviceDiscover,
                                  this.state.config.serviceControl]);
+
         if (typeof window !== 'undefined') {
             // Wait for user click
             await this.$.gatt.findServicesWeb(
                 services, '__iot_foundDevice__', 'confirmScan',
-                'afterConfirmScan'
+                'afterConfirmScan', this.state.config.namePrefix
             );
         } else {
-            this.$.gatt.findServices(services, '__iot_foundDevice__');
+            this.$.gatt.findServices(services, '__iot_foundDevice__',
+                                     this.state.config.namePrefix);
         }
         return [];
     },
@@ -130,9 +133,12 @@ exports.methods = {
     async __iot_foundDevice__(serviceId, device) {
         const services = Array.isArray(serviceId) ?
               serviceId.map(x => x.toLowerCase()) :
-              [serviceId.toLowerCase()];
+              (typeof serviceId === 'string' ?
+               [serviceId.toLowerCase()] :
+               []);
 
-        if (services.includes(this.state.config.serviceDiscover
+        if (this.state.config.namePrefix || // assume OK until connect()
+            services.includes(this.state.config.serviceDiscover
                               .toLowerCase()) ||
             (services.includes(this.state.config.serviceControl
                                .toLowerCase()))) {
@@ -186,6 +192,7 @@ exports.methods = {
                     const brightness = await this.$.gatt.dirtyRead(
                         this.scratch.charBrightness
                     );
+
                     state.brightness = brightness[0];
                     await this.$.cloud.cli.syncState(state).getPromise();
                 }
@@ -223,6 +230,11 @@ exports.methods = {
                     await this.$.gatt.write(this.scratch.charLight, buf);
                     return [];
                 }
+            } else if (this.state.deviceType === TRIONES) {
+                const buf = Uint8Array.from(isOn ? [0xCC, 0x23, 0x33] :
+                                            [0xCC, 0x24, 0x33]);
+                await this.$.gatt.write(this.scratch.charLight, buf);
+                return [];
             } else {
                 this.$.log && this.$.log.debug('switchLight: Ignoring unknown' +
                                                ' device type ' +
@@ -243,7 +255,8 @@ exports.methods = {
                 const buf = Uint8Array.from([level & LOWER_BITS_MASK]);
                 await this.$.gatt.write(this.scratch.charBrightness, buf);
                 return [];
-            } else if (this.state.deviceType === MAGIC_LIGHT) {
+            } else if ((this.state.deviceType === MAGIC_LIGHT) ||
+                       (this.state.deviceType === TRIONES)) {
                 assert(level === settings.brightness);
                 if (settings.isColor) {
                     return this.setColor(settings.color, settings);
@@ -274,7 +287,8 @@ exports.methods = {
                 patchUInt16(buf, 5, level);
                 await this.$.gatt.write(this.scratch.charColor, buf);
                 return [];
-            } else if (this.state.deviceType === MAGIC_LIGHT) {
+            } else if ((this.state.deviceType === MAGIC_LIGHT) ||
+                       (this.state.deviceType === TRIONES)) {
                 // It seems that both (W & Color) cannot be on at the same time
                 if (level < 325) {
                     // use color (6000K)
@@ -315,7 +329,8 @@ exports.methods = {
                 patchUInt16(buf, 7, y);
                 await this.$.gatt.write(this.scratch.charColor, buf);
                 return [];
-            } else if (this.state.deviceType === MAGIC_LIGHT) {
+            } else if ((this.state.deviceType === MAGIC_LIGHT) ||
+                       (this.state.deviceType === TRIONES)) {
                 color = colorUtil.scaleColorMagic(color, settings.brightness);
                 const buf = Uint8Array.from([0x56, 0x00, 0x00, 0x00, 0x00,
                                              0xf0, 0xaa]);
