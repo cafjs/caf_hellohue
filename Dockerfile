@@ -15,9 +15,24 @@ ENV PATH="/usr/src/node_modules/.bin:${PATH}"
 
 RUN apt-get update && apt-get install -y rsync
 
+ENV PATH="/usr/local/bin:${PATH}"
+
+RUN yarn config set prefix /usr/local
+
+RUN yarn global add caf_build browserify@17.0.0 uglify-es@3.3.9  && yarn cache clean
+
+# fill the local cache
+RUN yarn global add react-dom@16.14.0 react@16.14.0 react-bootstrap@0.32.4 redux@3.7.2 && yarn global remove react-dom react react-bootstrap redux
+
+# fill the local cache
+RUN yarn global add aframe@1.2.0 && yarn global remove aframe
+
+# fill the local cache
+RUN yarn global add aframe-gui@0.3.8 aframe-colorwheel-component@1.2.1 react-color@2.19.3 && yarn global remove aframe-gui aframe-colorwheel-component react-color
+
 COPY . /usr/src
 
-RUN  cd /usr/src/app && yarn install  --ignore-optional && cafjs build &&  yarn install --production --ignore-optional && yarn cache clean
+RUN   cd /usr/src/app && yarn install --production --ignore-optional && cafjs build && yarn cache clean
 
 WORKDIR /usr/src/app
 
