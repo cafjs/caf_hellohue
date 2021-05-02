@@ -1,10 +1,13 @@
 const cli = require('caf_cli');
 const AppActions = require('../actions/AppActions');
+const urlParser = require('url');
 
 exports.connect = function(ctx) {
     return new Promise((resolve, reject) => {
-
-        const session = new cli.Session(window.location.href, null,
+        const myURL = urlParser.parse(window.location.href);
+        const vrSession = 'session=vr' + cli.randomString(8);
+        myURL.hash = myURL.hash.replace('session=vr', vrSession);
+        const session = new cli.Session(urlParser.format(myURL), null,
                                         {timeoutMsec: 60000});
 
         session.onopen = async function() {
