@@ -5,6 +5,7 @@ const AppActions = require('../actions/AppActions');
 const Slider = require('react-slider').default;
 //const ChromePicker = require('react-color').ChromePicker;
 const SliderPicker = require('react-color').SliderPicker;
+const urlParser = require('url');
 
 class Device extends React.Component {
 
@@ -17,6 +18,17 @@ class Device extends React.Component {
         this.handleColorTemperature = this.handleColorTemperature.bind(this);
         this.handleColor = this.handleColor.bind(this);
         this.handleColorLocal = this.handleColorLocal.bind(this);
+        this.doVR = this.doVR.bind(this);
+    }
+
+    doVR(e) {
+        if ((typeof window !== "undefined") &&
+            window.location && window.location.href) {
+            const myURL = urlParser.parse(window.location.href);
+            myURL.pathname = '/vr/index.html';
+            myURL.hash = myURL.hash.replace('session=user', 'session=vr');
+            window.location.href = urlParser.format(myURL);
+        }
     }
 
     handleIsOn(e) {
@@ -173,7 +185,15 @@ class Device extends React.Component {
                          })
                         )
                      )
-                  )
+                  ),
+                  cE(rB.FormGroup, {controlId: 'viewerId'},
+                     cE(rB.Col, {sm:3, xs: 12},
+                        cE(rB.ControlLabel, null, 'Viewer Mode')
+                       ),
+                     cE(rB.Col, {sm:6, xs: 12},
+                        cE(rB.Button, {onClick: this.doVR}, 'VR')
+                       )
+                    )
                  );
     }
 };
