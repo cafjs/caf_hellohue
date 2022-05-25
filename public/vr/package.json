@@ -11,7 +11,7 @@
         "react" : "^16.6.0",
         "react-dom" : "^16.6.0",
         "redux" : "^3.7.2",
-        "aframe": "^1.2.0",
+        "aframe": "1.2.0",
         "aframe-react": "^4.4.0",
         "aframe-colorwheel-component": "^1.2.1",
         "aframe-gui": "^0.3.8",
